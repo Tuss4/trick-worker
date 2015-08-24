@@ -16,7 +16,7 @@ var (
 	apiKey     = os.Getenv("GOOGLE_API_KEY")
 )
 
-func printIDs(sectionName string, matches map[string]string) {
+func printIDs(sectionName string, matches map[string]Video) {
 	fmt.Printf("%v:\n", sectionName)
 	for id, title := range matches {
 		fmt.Printf("[%v] %v\n", id, title)
@@ -36,27 +36,19 @@ func main() {
 		log.Fatalf("Error creating new YouTube client: %v", err)
 	}
 
-	call := service.Search.List("id,snippet").Q(*query).MaxResults(*maxResults)
+	call := service.Search.List("id,snippet").Q(*query).MaxResults(*maxResults).Order("date")
 	response, err := call.Do()
 	if err != nil {
 		log.Fatalf("Error making search API call: %v", err)
 	}
 
-	videos := make(map[string]string)
-	channels := make(map[string]string)
-	playlists := make(map[string]string)
+	videos := make(map[string]Video)
 
 	for _, item := range response.Items {
 		switch item.Id.Kind {
 		case "youtube#video":
-			videos[item.Id.VideoId] = item.Snippet.Title
-		case "youtube#channel":
-			channels[item.Id.ChannelId] = item.Snippet.Title
-		case "youtube#playlist":
-			playlists[item.Id.PlaylistId] = item.Snippet.Title
+			videos[item.Id.VideoId] = Video{item.Id.VideoId, item.Snippet.Title}
 		}
 	}
 	printIDs("Videos", videos)
-	printIDs("Channels", channels)
-	printIDs("Playlists", playlists)
 }
