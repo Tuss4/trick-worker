@@ -11,15 +11,18 @@ import (
 )
 
 var (
-	query      = flag.String("query", "Google", "Search term")
 	maxResults = flag.Int64("max-results", 25, "Max YouTube Results")
 	apiKey     = os.Getenv("GOOGLE_API_KEY")
 )
 
+const (
+	query = "Martial Arts Tricking"
+)
+
 func printIDs(sectionName string, matches map[string]Video) {
 	fmt.Printf("%v:\n", sectionName)
-	for id, title := range matches {
-		fmt.Printf("[%v] %v\n", id, title)
+	for k, v := range matches {
+		fmt.Printf("[%v] %v, %v\n", k, v.title, v.url)
 	}
 	fmt.Printf("\n\n")
 }
@@ -36,7 +39,7 @@ func main() {
 		log.Fatalf("Error creating new YouTube client: %v", err)
 	}
 
-	call := service.Search.List("id,snippet").Q(*query).MaxResults(*maxResults).Order("date")
+	call := service.Search.List("id,snippet").Q(query).MaxResults(*maxResults).Order("date")
 	response, err := call.Do()
 	if err != nil {
 		log.Fatalf("Error making search API call: %v", err)
@@ -47,7 +50,8 @@ func main() {
 	for _, item := range response.Items {
 		switch item.Id.Kind {
 		case "youtube#video":
-			videos[item.Id.VideoId] = Video{item.Id.VideoId, item.Snippet.Title}
+			videos[item.Id.VideoId] = Video{
+				item.Id.VideoId, item.Snippet.Title, item.Snippet.Thumbnails.High.Url}
 		}
 	}
 	printIDs("Videos", videos)
