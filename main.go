@@ -1,8 +1,10 @@
 package main
 
 import (
+	"database/sql"
 	"flag"
 	"fmt"
+	_ "github.com/lib/pq"
 	googtransport "google.golang.org/api/googleapi/transport"
 	youtube "google.golang.org/api/youtube/v3"
 	"log"
@@ -13,6 +15,7 @@ import (
 var (
 	maxResults = flag.Int64("max-results", 25, "Max YouTube Results")
 	apiKey     = os.Getenv("GOOGLE_API_KEY")
+	dbURL      = os.Getenv("DATABASE_URL")
 )
 
 const (
@@ -25,6 +28,13 @@ func printIDs(sectionName string, matches map[string]Video) {
 		fmt.Printf("[%v] %v, %v\n", k, v.title, v.url)
 	}
 	fmt.Printf("\n\n")
+}
+
+func getDbURL() string {
+	if dbURL == "" {
+		return "postgres://postgres:postgres@localhost:5432/postgres?sslmode=disable"
+	}
+	return dbURL
 }
 
 func main() {
@@ -55,4 +65,11 @@ func main() {
 		}
 	}
 	printIDs("Videos", videos)
+	db, err := sql.Open("postgres", getDbURL())
+	if err != nil {
+		panic(err)
+	}
+	println("Connection success!")
+	defer db.Close()
+	updateDb(db, videos)
 }
