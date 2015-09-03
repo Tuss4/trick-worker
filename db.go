@@ -18,7 +18,7 @@ func updateDb(db *sql.DB, videos map[string]Video) {
 		case err == sql.ErrNoRows:
 			fmt.Println("No video with that ID.")
 		case err != nil:
-			log.Fatal(err)
+			fmt.Println(err)
 		default:
 			println("Adding video to DB.")
 		}
