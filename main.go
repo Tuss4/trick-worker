@@ -16,6 +16,8 @@ var (
 	maxResults = flag.Int64("max-results", 25, "Max YouTube Results")
 	apiKey     = os.Getenv("GOOGLE_API_KEY")
 	dbURL      = os.Getenv("DATABASE_URL")
+	apiURL     = os.Getenv("API_URL")
+	authToken  = os.Getenv("TRICKFEED_AUTH_TOKEN")
 )
 
 const (
@@ -35,6 +37,17 @@ func getDbURL() string {
 		return "postgres://postgres:postgres@localhost:5432/postgres?sslmode=disable"
 	}
 	return dbURL
+}
+
+func getApiUrl() string {
+	if apiURL == "" {
+		return "http://localhost:5000/v1/videos/"
+	}
+	return apiURL
+}
+
+func getToken() string {
+	return fmt.Sprintf("Token %v", authToken)
 }
 
 func main() {
